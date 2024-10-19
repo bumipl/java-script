@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: java-script-deployment
+  labels:
+    app: java-script
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: java-script
+  template:
+    metadata:
+      labels:
+        app: java-script
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: website-volume
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: website-volume
+        configMap:
+          name: java-script-configmap
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: java-script-configmap
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Welcome to Java Script</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div class="container">
+            <h1>Welcome to Java Script!</h1>
+            <p>Click the button below to see a special message.</p>
+            <button id="welcomeBtn">Click me</button>
+            <p id="welcomeMessage" class="hidden"></p>
+        </div>
+
+        <script src="script.js"></script>
+    </body>
+    </html>
+  style.css: |
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .container {
+        text-align: center;
+        margin-top: 50px;
+    }
+
+    button {
+        padding: 10px 20px;
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    #welcomeMessage {
+        margin-top: 20px;
+        font-size: 20px;
+        color: #28a745;
+    }
+  script.js: |
+    document.getElementById("welcomeBtn").addEventListener("click", function() {
+        const welcomeMessage = document.getElementById("welcomeMessage");
+        welcomeMessage.textContent = "Hello, DevOps Engineer! Java Script is now live.";
+        welcomeMessage.classList.remove("hidden");
+    });
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: java-script-service
+spec:
+  selector:
+    app: java-script
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
